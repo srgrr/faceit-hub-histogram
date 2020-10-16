@@ -15,7 +15,7 @@ FACEIT_GET_LIMIT = 20
 
 FACEIT_GET_PLAYER_DETAILS_ENDPOINT = 'https://open.faceit.com/data/v4/players?nickname=%s'
 FACEIT_GET_MATCH_HISTORY_ENDPOINT = \
-f'https://open.faceit.com/data/v4/players/%s/history?game=csgo&offset=%s&limit={FACEIT_GET_LIMIT}&from=0&to=2147483647'
+f'https://open.faceit.com/data/v4/players/%s/history?game=csgo&offset=%s&limit={FACEIT_GET_LIMIT}&from=0&to=2047483647'
 
 
 def parse_options():
