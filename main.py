@@ -49,25 +49,25 @@ def _get_basic_headers(api_key):
 def _get_player_id_and_num_matches(nickname, api_key):
 	final_url = FACEIT_GET_PLAYER_DETAILS_ENDPOINT % nickname
 	headers = _get_basic_headers(api_key)
-	response = requests.get(final_url, headers = headers)
+	response = requests.get(final_url, headers=headers)
 	resp_dict = eval(str(response.json()))
 	return resp_dict['player_id']
 
 
 def _get_competition_names_from_match_history(player_id, api_key):
 	competition_names = []
+	last_match = None
 	for offset in range(0, 2 ** 15 - 1, FACEIT_GET_LIMIT):
 		final_url = FACEIT_GET_MATCH_HISTORY_ENDPOINT % (player_id, str(offset))
 		headers = _get_basic_headers(api_key)
-		response = requests.get(final_url, headers = headers)
+		response = requests.get(final_url, headers=headers)
 		resp_dict = eval(str(response.json()))
 		if not 'items' in resp_dict:
-			print(offset)
-			print(resp_dict)
 			break
 		matches = resp_dict['items']
 		if not matches:
 			break
+		last_match = matches[-1]
 		competition_names += [x['competition_name'] for x in matches]
 	return competition_names
 
@@ -79,7 +79,7 @@ def main(player_name, faceit_api_key, debug):
 
 	logging.debug(f'Processing player {player_name} ...')
 
-	player_id= _get_player_id_and_num_matches(player_name, faceit_api_key)
+	player_id = _get_player_id_and_num_matches(player_name, faceit_api_key)
 	competition_names = _get_competition_names_from_match_history(player_id, faceit_api_key)
 
 	cnt = Counter(competition_names)
