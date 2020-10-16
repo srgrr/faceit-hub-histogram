@@ -1,11 +1,11 @@
 # Faceit hub histogram
-Know most frequent queues in CSGO for a given faceit user. You will need to have a FACEIT developer token to have access to their DATA API.
+Know most frequent queues in CSGO for a given faceit user. You will need a FACEIT developer token to have access to their DATA API.
 
-Check FACEIT developers portal for more information.
+Check FACEIT developer's portal for more information.
 
 # Example output
 ```
-python main.py --player-name kr0ck998 --faceit-api-key $(cat api-key)                                                                                                        ░▒▓ ✔ | 14:35:44
+python main.py --player-name kr0ck998 --faceit-api-key $(cat api-key)                                                                                
 x6tence Community League [ABIERTO]: 33
 CS:GO 5v5: 294
 CS:GO 5v5 PREMIUM: 71
