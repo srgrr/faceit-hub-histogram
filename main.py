@@ -1,5 +1,5 @@
 """
-	Author: Sergio Rodriguez Guasch
+	Author: SergioRG
 """
 from collections import Counter
 import numpy as np
