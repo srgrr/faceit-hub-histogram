@@ -1,3 +1,4 @@
 api-key
 *.log
 *.png
+__pycache__

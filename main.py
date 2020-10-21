@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import logging
 import requests
+import itertools
 import uuid
 import time
 import ast
@@ -46,7 +47,22 @@ def _get_basic_headers(api_key):
     return {'Authorization': f'Bearer {api_key}'}
 
 
-def _get_player_id_and_num_matches(nickname, api_key):
+def _hub_honesty_factor(play_count, honest_hubs=['CS:GO 5v5', 'CS:GO 5v5 PREMIUM']):
+    return 1.0 * sum(play_count[x] for x in honest_hubs) / sum(y for y in play_count.values())
+
+
+def _team_dishonesty_factor(player_team, match):
+    levels = [x['skill_level'] for x in match['teams'][player_team]['players']]
+    return sum([(l1 - l2) ** 2 for (l1, l2) in itertools.combinations(levels, 2)])
+
+
+def _get_team_name(player_id, match):
+    return 'faction1' if player_id in \
+    [x['player_id'] for x in match['teams']['faction1']['players']] \
+    else 'faction2'
+
+
+def _get_player_id(nickname, api_key):
     final_url = FACEIT_GET_PLAYER_DETAILS_ENDPOINT % nickname
     headers = _get_basic_headers(api_key)
     response = requests.get(final_url, headers=headers)
@@ -54,10 +70,7 @@ def _get_player_id_and_num_matches(nickname, api_key):
     return resp_dict['player_id']
 
 
-def _get_competition_names_from_match_history(player_id, api_key):
-    competition_names = []
-    last_match = None
-
+def _get_match_history(player_id, api_key):
     for offset in range(0, 2 ** 15 - 1, FACEIT_GET_LIMIT):
         logging.debug(f'Processing offset {offset}')
         final_url = FACEIT_GET_MATCH_HISTORY_ENDPOINT % (player_id, str(offset))
@@ -72,31 +85,50 @@ def _get_competition_names_from_match_history(player_id, api_key):
 
         matches = resp_dict['items']
 
+        for match in matches:
+            yield match
+
         if not matches:
             logging.debug('Reached end of match history')
             break
 
-        last_match = matches[-1]
-        competition_names += [x['competition_name'] for x in matches]
-
-    logging.debug(f'Processed {len(competition_names)}')
-
-    return competition_names
-
 
 def main(player_name, faceit_api_key, debug):
+
+    output_base = f'{player_name}-{uuid.uuid4()}'
+
     if debug:
-        logging.basicConfig(filename=f'{player_name}-{uuid.uuid4()}.log', level=logging.DEBUG)
+        logging.basicConfig(filename=f'{output_base}.log', level=logging.DEBUG)
 
     logging.debug(f'Processing player {player_name} ...')
 
-    player_id = _get_player_id_and_num_matches(player_name, faceit_api_key)
-    competition_names = _get_competition_names_from_match_history(player_id, faceit_api_key)
+    player_id = _get_player_id(player_name, faceit_api_key)
 
-    cnt = Counter(competition_names)
+    report_d = {}
 
-    for (k, v) in cnt.items():
-        print(f'{k}: {v}')
+    for match in _get_match_history(player_id, faceit_api_key):
+        logging.debug(f'Processing match {match["match_id"]}')
+        player_team = _get_team_name(player_id, match)
+        logging.debug(f'Target player played in {player_team}')
+        hub_name = match['competition_name']
+        logging.debug(f'Match was played in {hub_name}')
+        player_won = player_team == match['results']['winner']
+        logging.debug(f'Target player won the game: {player_won}')
+        dishonesty_factor = _team_dishonesty_factor(player_team, match)
+        logging.debug(f'Team dishonesty factor: {dishonesty_factor}')
+        match_date = match['started_at']
+        logging.debug(f'Match started at {match_date}')
+        logging.debug('-' * 20)
+
+        report_d.setdefault(hub_name, []).append(
+            {
+                'player_won': int(player_won),
+                'dishonesty_factor': dishonesty_factor,
+                'match_date': match_date
+            }
+        )
+
+    print(report_d)
 
 
 if __name__ == '__main__':
