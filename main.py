@@ -128,6 +128,8 @@ def main(player_name, faceit_api_key, debug):
             }
         )
 
+    report_d['hub_honesty_factor'] = _hub_honesty_factor({x: len(report_d[x]) for x in report_d.keys()})
+
     print(report_d)
 
 
