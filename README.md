@@ -3,9 +3,9 @@ Given a FACEIT player nickname, return a JSON report with some metrics of their 
 
 For each match, it stores the date it took place, if the player won or lost the match and the dishonesty factor of his team.
 
-The dishonesty factor is the sum of the square of the level differences of all the pairs of players in the same team. For example, a premade 
+The dishonesty factor is the sum of the square of the level differences of all the pairs of players in the same team. For example, a team consisting of levels 10, 10, 10, 10, and 1 will have 324 DF, while a team of levels 8, 6, 6, 7, and 5 will only have a dishonesty of 26.
 
-You need and API Key from FACEIT 
+You need and API Key from FACEIT developer's portal to make this thing run, check their webpage if you wanna know how to do it.
 
 # Example output
 ```
